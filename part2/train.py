@@ -20,7 +20,7 @@ data, dataloaders = get_dataloaders(args.data_dir)
 device = get_device_mode(args.gpu)
 
 # Support vgg16 olny
-model = get_model_arch(args.arch)
+model, arch = get_model_arch(args.arch)
 
 # Freeze the parameters of densenet
 for param in model.parameters():
@@ -59,22 +59,22 @@ with active_session():
             # Move inputs and labels to the GPU/CPU
             inputs, labels = inputs.to(device), labels.to(device)
 
-            # Set gradient to zero so that you do the parameter update correctly. 
-            # Else the gradient would point in some other direction than the intended direction towards the minimum 
+            # Set gradient to zero so that you do the parameter update correctly.
+            # Else the gradient would point in some other direction than the intended direction towards the minimum
             optimizer.zero_grad()
 
             # Propagation
             logps = model.forward(inputs)
-            
+
             # Calculate loss
             loss = criterion(logps, labels)
-            
+
             # Backpropagation
             loss.backward()
-            
+
             # Update parameters based on the current gradient
             optimizer.step()
-            
+
             running_loss += loss.item()
 
             # Print current error and accuracy in every n time
@@ -92,16 +92,16 @@ with active_session():
 
                         val_loss += batch_loss.item()
 
-                        # Since our model outputs a LogSoftmax, find the real 
+                        # Since our model outputs a LogSoftmax, find the real
                         # percentages by reversing the log function
                         ps = torch.exp(logps)
-                        
+
                         # Get the top class and probability
                         top_p, top_class = ps.topk(1, dim=1)
-                        
+
                         # Check correct classes
                         equals = top_class == labels.view(*top_class.shape)
-                        
+
                         val_accuracy += torch.mean(equals.type(torch.FloatTensor)).item()
 
                 train_losses.append(running_loss/len(dataloaders['train']))
@@ -112,31 +112,24 @@ with active_session():
                       f"Validation loss: {val_loss/len(dataloaders['val']):.3f}.. "
                       f"Validation accuracy: {val_accuracy/len(dataloaders['val']):.3f}")
                 running_loss = 0
-                # Set to train mode  
+                # Set to train mode
                 model.train()
 
-if args.save_dir is not None:
-    model.class_to_idx = data['train'].class_to_idx
 
-    checkpoint = {'input_size': 25088,
-                  'hidden_layers':[args.hidden_uniits],
-                  'output_size': 102,
-                  'arch': 'vgg16',
-                  'learning_rate': args.lr,
-                  'batch_size': 32,
-                  'classifier' : classifier,
-                  'epochs': epochs,
-                  'optimizer': optimizer.state_dict(),
-                  'state_dict': model.state_dict(),
-                  'class_to_idx': model.class_to_idx}
+model.class_to_idx = data['train'].class_to_idx
 
-    save_dir = args.save_dir + '/checkpoint.py'
-    torch.save(checkpoint, save_dir)
-    print("model saved")
-else:
-    pass
+checkpoint = {'input_size': 25088,
+              'hidden_layers':[args.hidden_uniits],
+              'output_size': 102,
+              'arch': arch,
+              'learning_rate': args.lr,
+              'batch_size': 32,
+              'classifier' : classifier,
+              'epochs': epochs,
+              'optimizer': optimizer.state_dict(),
+              'state_dict': model.state_dict(),
+              'class_to_idx': model.class_to_idx}
 
-
-
-
-
+filepath = args.save_dir + '/checkpoint.pth'
+torch.save(checkpoint, filepath)
+print("model saved")

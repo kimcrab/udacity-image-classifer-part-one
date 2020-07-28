@@ -9,8 +9,8 @@ def transform_image():
         'train':
         transforms.Compose([
             # use data augmentation on training sets
-            transforms.RandomResizedCrop(224),     
-            transforms.RandomRotation(degrees=30), 
+            transforms.RandomResizedCrop(224),
+            transforms.RandomRotation(degrees=30),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406],
@@ -32,9 +32,9 @@ def transform_image():
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ]),
     }
-    
+
     return image_transforms
-    
+
 
 def get_dataloaders(data_dir):
     train_dir = data_dir + '/train'
@@ -43,7 +43,7 @@ def get_dataloaders(data_dir):
 
     # Image transformations
     image_transforms = transform_image()
-    
+
     data = {
         'train':
         datasets.ImageFolder(root=train_dir, transform=image_transforms['train']),
@@ -55,10 +55,10 @@ def get_dataloaders(data_dir):
 
     dataloaders = {
         'train': DataLoader(data['train'], batch_size=32, shuffle=True),
-        'val': DataLoader(data['valid'], batch_size=32, shuffle=True),
-        'test': DataLoader(data['test'], batch_size=32, shuffle=True)
+        'val': DataLoader(data['valid'], batch_size=32),
+        'test': DataLoader(data['test'], batch_size=32)
     }
-    
+
     return data, dataloaders
 
 def process_image(image):
@@ -86,4 +86,3 @@ def process_image(image):
     im = (im - mean) / std
 
     return im.transpose(2,0,1)
-
