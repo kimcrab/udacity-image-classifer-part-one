@@ -6,31 +6,44 @@ import torch.optim as optim
 
 
 def get_device_mode(gpu):
+    """Check cuda availability, returns String"""
     if gpu and torch.cuda.is_available():
-        device = "cuda"
-        print("set to GPU mode")
+        device = 'cuda'
+        print('set to GPU mode')
     else:
-        device = "cpu"
-        print("set to CPU mode")
-
+        device = 'cpu'
+        print('set to CPU mode')
     return device
 
+
 def get_model_arch(arch):
-    if arch == "vgg16":
-        print("model set to vgg16")
+    """Returns pretrained vgg model based on string input value.
+
+    Default vgg model is vgg16.
+    """
+    if arch == 'vgg16':
+        print('model set to vgg16')
         model = models.vgg16(pretrained=True)
-    elif arch == "vgg13":
-        print("model set to vgg13")
+    elif arch == 'vgg13':
+        print('model set to vgg13')
         model = models.vgg13(pretrained=True)
     else:
-        print("currently only support vgg16 & vgg13")
-        print("model set to vgg16")
+        print('currently only support vgg16 & vgg13')
+        print('model set to vgg16')
         model = models.vgg16(pretrained=True)
-        arch == "vgg16"
-
+        arch == 'vgg16'
     return model, arch
 
+
 def load_checkpoint(filename):
+    """Load saved torchvision model based on filename
+
+    Args: string value that refers filename including filepath
+
+    Returns:
+        model: torchvision model object
+        optimizer: Adam optimizer object
+    """
     checkpoint = torch.load(filename)
     learning_rate = checkpoint['learning_rate']
     model = getattr(torchvision.models, checkpoint['arch'])(pretrained=True)
@@ -41,12 +54,14 @@ def load_checkpoint(filename):
     model.epochs = checkpoint['epochs']
     model.load_state_dict(checkpoint['state_dict'])
     model.class_to_idx = checkpoint['class_to_idx']
-    optimizer = optim.Adam(model.classifier.parameters(), lr=checkpoint['learning_rate'])
+    optimizer = optim.Adam(model.classifier.parameters(),
+                           lr=checkpoint['learning_rate'])
     optimizer.load_state_dict(checkpoint['optimizer'])
-
     return model, optimizer
 
+
 def map_categories(category_names):
+    """Returns category dictionary"""
     with open(category_names, 'r') as f:
         cat_to_name = json.load(f)
         return cat_to_name
